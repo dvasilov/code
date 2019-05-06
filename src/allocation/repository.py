@@ -1,7 +1,8 @@
 from typing import Set
 import abc
-from allocation import model, orm
+from allocation import model
 
+from djangoproject.alloc import models as django_models
 
 class AbstractRepository(abc.ABC):
 
@@ -25,22 +26,17 @@ class AbstractRepository(abc.ABC):
 
 class DjangoRepository(AbstractRepository):
 
-    def __init__(self):
-        super().__init__()
-        from djangoproject.alloc import models
-        self.django_models = models
-
     def add(self, batch):
         super().add(batch)
         self.update(batch)
 
     def update(self, batch):
-        self.django_models.Batch.update_from_domain(batch)
+        django_models.Batch.update_from_domain(batch)
 
     def _get(self, reference):
-        return self.django_models.Batch.objects.filter(
+        return django_models.Batch.objects.filter(
             reference=reference
         ).first().to_domain()
 
     def list(self):
-        return [b.to_domain() for b in self.django_models.Batch.objects.all()]
+        return [b.to_domain() for b in django_models.Batch.objects.all()]
