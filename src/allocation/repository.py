@@ -1,8 +1,8 @@
 from typing import Set
 import abc
-from allocation import model
 
 from djangoproject.alloc import models as django_models
+from allocation import model
 
 class AbstractRepository(abc.ABC):
 
