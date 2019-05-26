@@ -1,12 +1,15 @@
-from typing import List, Dict, Callable, Type
+from __future__ import annotations
+from typing import List, Dict, Callable, Type, TYPE_CHECKING
 from allocation import events, handlers
+if TYPE_CHECKING:
+    from allocation import unit_of_work
 
 
-def handle(events_: List[events.Event]):
+def handle(events_: List[events.Event], uow: unit_of_work.AbstractUnitOfWork):
     while events_:
         event = events_.pop(0)
         for handler in HANDLERS[type(event)]:
-            handler(event)
+            handler(event, uow=uow)
 
 
 HANDLERS = {
