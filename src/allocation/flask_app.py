@@ -1,9 +1,18 @@
 from datetime import datetime
 from flask import Flask, jsonify, request
-from allocation import commands, exceptions, messagebus, orm, unit_of_work, views
+from allocation import (
+    commands, email, exceptions, messagebus, orm, redis_pubsub, unit_of_work,
+    views,
+)
 
 app = Flask(__name__)
 orm.start_mappers()
+bus = messagebus.MessageBus(
+    uow=unit_of_work.SqlAlchemyUnitOfWork(),
+    send_mail=email.send,
+    publish=redis_pubsub.publish
+)
+
 
 
 @app.route("/add_batch", methods=['POST'])
@@ -14,8 +23,7 @@ def add_batch():
     cmd = commands.CreateBatch(
         request.json['ref'], request.json['sku'], request.json['qty'], eta,
     )
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
-    messagebus.handle_command(cmd, uow)
+    bus.handle([cmd])
     return 'OK', 201
 
 
@@ -25,8 +33,7 @@ def allocate_endpoint():
         cmd = commands.Allocate(
             request.json['orderid'], request.json['sku'], request.json['qty'],
         )
-        uow = unit_of_work.SqlAlchemyUnitOfWork()
-        messagebus.handle_command(cmd, uow)
+        bus.handle([cmd])
     except exceptions.InvalidSku as e:
         return jsonify({'message': str(e)}), 400
 
@@ -35,8 +42,7 @@ def allocate_endpoint():
 
 @app.route("/allocations/<orderid>", methods=['GET'])
 def allocations_view_endpoint(orderid):
-    uow = unit_of_work.SqlAlchemyUnitOfWork()
-    result = views.allocations(orderid, uow)
+    result = views.allocations(orderid, bus.uow)
     if not result:
         return 'not found', 404
     return jsonify(result), 200
