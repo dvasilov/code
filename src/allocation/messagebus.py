@@ -1,5 +1,5 @@
 from typing import List, Dict, Callable, Type
-from allocation import email, events
+from allocation import events, handlers
 
 
 def handle(events_: List[events.Event]):
@@ -9,15 +9,8 @@ def handle(events_: List[events.Event]):
             handler(event)
 
 
-def send_out_of_stock_notification(event: events.OutOfStock):
-    email.send_mail(
-        'stock@made.com',
-        f'Out of stock for {event.sku}',
-    )
-
-
 HANDLERS = {
-    events.OutOfStock: [send_out_of_stock_notification],
-
+    events.BatchCreated: [handlers.add_batch],
+    events.AllocationRequired: [handlers.allocate],
+    events.OutOfStock: [handlers.send_out_of_stock_notification],
 }  # type: Dict[Type[events.Event], List[Callable]]
-
