@@ -76,4 +76,3 @@ def restart_redis_pubsub():
         print('skipping restart, assumes running in container')
         return
     subprocess.run(['docker-compose', 'restart', '-t', '0', 'redis_pubsub'])
-
