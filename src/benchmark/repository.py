@@ -13,6 +13,9 @@ class BatchRepository:
     def get(self, ref):
         return self.session.query(model.Batch).filter_by(reference=ref).first()
 
+    def get_by_sku(self, sku):
+        return self.session.query(model.Batch).filter_by(sku=sku).all()
+
 
 class BatchWithForUpdateRepository:
 
@@ -25,3 +28,6 @@ class BatchWithForUpdateRepository:
 
     def get(self, ref):
         return self.session.query(model.Batch).filter_by(reference=ref).with_for_update().first()
+
+    def get_by_sku(self, sku):
+        return self.session.query(model.Batch).filter_by(sku=sku).with_for_update().all()
